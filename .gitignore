@@ -116,3 +116,6 @@ soundcloud_debug.html
 .vscode/
 *.swp
 *.swo 
+
+# Future.md
+Futures.md

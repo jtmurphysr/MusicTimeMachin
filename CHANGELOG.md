@@ -5,6 +5,19 @@ All notable changes to the Music Time Machine project will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2023-10-30
+
+### Added
+- New `PlaylistBuilder` module that separates playlist creation from data scraping
+- Improved separation of concerns for better extensibility
+- Added `docs/EXTENDING.md` guide explaining how to add new music chart scrapers
+
+### Changed
+- Refactored codebase to use the new PlaylistBuilder for all Spotify interactions
+- Simplified scraper classes to focus solely on data extraction
+- Updated architecture to be more modular and maintainable
+- Updated README.md to reference the extension documentation
+
 ## [2.0.1] - 2023-10-28
 
 ### Added
@@ -53,4 +66,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Spotify song matching
 - Playlist creation functionality
 - Basic command-line interface
-- Environment variable management 
+- Environment variable management

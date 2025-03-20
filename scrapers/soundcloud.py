@@ -5,9 +5,7 @@ import requests
 """
 SoundCloud Top EDM Scraper Module
 
-This module provides functionality to scrape SoundCloud's current top EDM charts
-and create Spotify playlists from the scraped tracks.
-
+This module provides functionality to scrape SoundCloud's current top EDM charts.
 The SoundCloudEDMScraper class inherits from BaseMusicScraper and implements
 the chart-specific scraping logic for SoundCloud's website. By default, it scrapes
 the 'danceedm' genre, but can be configured for other genres available on SoundCloud.
@@ -15,20 +13,21 @@ the 'danceedm' genre, but can be configured for other genres available on SoundC
 Example usage:
     scraper = SoundCloudEDMScraper()  # Default is danceedm genre
     if scraper.scrape():
-        playlist_url = scraper.create_playlist("Top EDM Tracks This Week")
+        tracks_data = scraper.get_tracks_data()
+        # tracks_data can now be used with a PlaylistBuilder to create playlists
         
     # Or with a different genre:
     techno_scraper = SoundCloudEDMScraper(genre="techno")
     if techno_scraper.scrape():
-        playlist_url = techno_scraper.create_playlist("Top Techno Tracks")
+        tracks_data = techno_scraper.get_tracks_data()
 """
 
 class SoundCloudEDMScraper(BaseMusicScraper):
     """
     Scraper for SoundCloud top EDM chart.
     
-    This class is responsible for scraping the SoundCloud top EDM chart
-    and creating a Spotify playlist with those songs.
+    This class is responsible for scraping the SoundCloud top EDM chart.
+    It retrieves and formats track data, which can then be used to create playlists.
     """
     
     def __init__(self, genre="danceedm"):
@@ -106,31 +105,12 @@ class SoundCloudEDMScraper(BaseMusicScraper):
             print(f"Error scraping SoundCloud: {e}")
             return False
     
-    def create_playlist(self, playlist_name, limit=30):
+    def get_genre(self):
         """
-        Create a Spotify playlist with songs from the SoundCloud chart.
+        Get the genre used for the scraping operation.
+        This can be useful for generating appropriate descriptions.
         
-        Args:
-            playlist_name (str): The name for the playlist.
-            limit (int, optional): Maximum number of songs to add to the playlist. Defaults to 30.
-            
         Returns:
-            str or None: The URL of the created playlist if successful, None otherwise.
+            str: The genre string that was used in the scrape operation.
         """
-        if not self.tracks_data:
-            print("No tracks data available. Please run scrape() first.")
-            return None
-        
-        # Search for each song on Spotify and collect URIs
-        spotify_uris = []
-        for i, (title, artist) in enumerate(self.tracks_data[:limit], 1):
-            print(f"({i}/{limit}) Searching for: {title} - {artist}")
-            uri = self.search_song(title, artist)
-            if uri:
-                spotify_uris.append(uri)
-        
-        print(f"Found {len(spotify_uris)} tracks on Spotify")
-        
-        # Create the playlist
-        description = f"Top SoundCloud {self.genre.capitalize()} tracks"
-        return self.make_playlist(spotify_uris, playlist_name, description) 
+        return self.genre 

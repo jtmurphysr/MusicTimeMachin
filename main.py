@@ -6,6 +6,7 @@ from spotipy.oauth2 import SpotifyOAuth
 from env_variables import EnvConfig
 from scrapers.billboard import BillboardTop100Scraper
 from scrapers.soundcloud import SoundCloudEDMScraper
+from playlist_builder import PlaylistBuilder
 import sys
 from datetime import datetime
 
@@ -29,7 +30,7 @@ Usage:
     python main.py
 
 Author: John Murphy
-Version: 2.0.1
+Version: 2.1.0
 """
 
 def display_welcome_message():
@@ -116,8 +117,19 @@ def run_billboard_flow():
         print("Playlist creation cancelled.")
         return
     
-    # Create the playlist
-    playlist_url = scraper.create_playlist(playlist_name, target_date)
+    # Get the track data from the scraper
+    tracks_data = scraper.get_tracks_data()
+    
+    # Create the playlist builder
+    playlist_builder = PlaylistBuilder()
+    
+    # Create the playlist using the builder
+    description = f"Billboard Hot 100 songs for {target_date}"
+    playlist_url = playlist_builder.create_playlist(
+        tracks_data=tracks_data,
+        playlist_name=playlist_name,
+        description=description
+    )
     
     if playlist_url:
         print(f"\nSuccess! Your playlist has been created: {playlist_url}")
@@ -147,8 +159,20 @@ def run_soundcloud_flow():
         print("Playlist creation cancelled.")
         return
     
-    # Create the playlist
-    playlist_url = scraper.create_playlist(playlist_name)
+    # Get the track data from the scraper
+    tracks_data = scraper.get_tracks_data()
+    
+    # Create the playlist builder
+    playlist_builder = PlaylistBuilder()
+    
+    # Create the playlist using the builder
+    genre = scraper.get_genre()
+    description = f"Top SoundCloud {genre.capitalize()} tracks"
+    playlist_url = playlist_builder.create_playlist(
+        tracks_data=tracks_data,
+        playlist_name=playlist_name,
+        description=description
+    )
     
     if playlist_url:
         print(f"\nSuccess! Your playlist has been created: {playlist_url}")

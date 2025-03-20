@@ -5,24 +5,23 @@ import requests
 """
 Billboard Hot 100 Scraper Module
 
-This module provides functionality to scrape Billboard Hot 100 charts from any date
-and create Spotify playlists from the scraped tracks.
-
+This module provides functionality to scrape Billboard Hot 100 charts from any date.
 The BillboardTop100Scraper class inherits from BaseMusicScraper and implements
 the chart-specific scraping logic for Billboard's website.
 
 Example usage:
     scraper = BillboardTop100Scraper()
     if scraper.scrape("2021-01-01"):
-        playlist_url = scraper.create_playlist("New Year 2021 Hits", "2021-01-01")
+        tracks_data = scraper.get_tracks_data()
+        # tracks_data can now be used with a PlaylistBuilder to create playlists
 """
 
 class BillboardTop100Scraper(BaseMusicScraper):
     """
     Scraper for Billboard Hot 100 chart.
     
-    This class is responsible for scraping the Billboard Hot 100 chart for a specific date
-    and creating a Spotify playlist with those songs.
+    This class is responsible for scraping the Billboard Hot 100 chart for a specific date.
+    It retrieves and formats track data, which can then be used to create playlists.
     """
     
     def __init__(self):
@@ -96,32 +95,14 @@ class BillboardTop100Scraper(BaseMusicScraper):
             print(f"Error scraping Billboard Hot 100: {e}")
             return False
     
-    def create_playlist(self, playlist_name, target_date, limit=30):
+    def get_chart_date(self):
         """
-        Create a Spotify playlist with songs from the Billboard Hot 100.
+        Get the date used for the last scraping operation.
+        This can be useful for generating appropriate descriptions.
         
-        Args:
-            playlist_name (str): The name for the playlist.
-            target_date (str): The date used for scraping in format YYYY-MM-DD.
-            limit (int, optional): Maximum number of songs to add to the playlist. Defaults to 30.
-            
         Returns:
-            str or None: The URL of the created playlist if successful, None otherwise.
+            str: The date string that was used in the last scrape operation.
         """
-        if not self.tracks_data:
-            print("No tracks data available. Please run scrape() first.")
-            return None
-        
-        # Search for each song on Spotify and collect URIs
-        spotify_uris = []
-        for i, (position, title, artist) in enumerate(self.tracks_data[:limit], 1):
-            print(f"({i}/{limit}) Searching for: #{position}: {title} - {artist}")
-            uri = self.search_song(title, artist)
-            if uri:
-                spotify_uris.append(uri)
-        
-        print(f"Found {len(spotify_uris)} tracks on Spotify")
-        
-        # Create the playlist
-        description = f"Billboard Hot 100 songs for {target_date}"
-        return self.make_playlist(spotify_uris, playlist_name, description) 
+        # This is a helper method specific to Billboard scraping
+        # to help with playlist generation information
+        return getattr(self, 'last_scrape_date', None) 

@@ -22,7 +22,10 @@ Perfect for reliving musical memories or discovering what's trending now!
 - Playlist creation with custom name
 - Default playlist names include relevant dates (historical date for Billboard, today's date for SoundCloud)
 - Saves track lists to text files for reference
-- Clean object-oriented design for easy extension
+- Clean object-oriented design with separation of concerns:
+  - Scrapers focus solely on data extraction
+  - PlaylistBuilder handles all Spotify interactions
+- Modular architecture for easy extension with new chart sources
 - Environment variable management for secure credential storage
 
 ## Installation
@@ -93,11 +96,14 @@ The first time you run the script, it will open a browser window for you to auth
   - `base_scraper.py` - Abstract base class defining the scraper interface
   - `billboard.py` - Implementation of Billboard Hot 100 scraper
   - `soundcloud.py` - Implementation of SoundCloud Top EDM scraper
+- `playlist_builder.py` - Module that handles all Spotify interactions and playlist creation
 - `env_variables.py` - A utility class for managing environment variables
 - `.env` - Contains your Spotify API credentials (not included in the repository)
 - `requirements.txt` - Lists the required Python packages
 - `.gitignore` - Specifies files that should not be tracked by Git
 - `CHANGELOG.md` - Tracks changes between versions
+- `docs/` - Documentation directory
+  - `EXTENDING.md` - Guide for adding new chart scrapers to the project
 
 ## Dependencies
 
@@ -116,4 +122,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [Billboard](https://www.billboard.com/) for providing historical chart data
 - [SoundCloud](https://soundcloud.com/) for providing current EDM chart data
 - [Spotify Web API](https://developer.spotify.com/documentation/web-api/) for enabling playlist creation
-- [Spotipy](https://spotipy.readthedocs.io/) for the excellent Python wrapper around the Spotify API 
+- [Spotipy](https://spotipy.readthedocs.io/) for the excellent Python wrapper around the Spotify API
+
+## Extending the Project
+
+Want to add support for a new music chart or genre? Check out the [Extending Guide](docs/EXTENDING.md) for detailed instructions on implementing new scrapers and integrating them into the application. 
