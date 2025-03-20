@@ -1,6 +1,31 @@
 import os
 from dotenv import load_dotenv
 
+"""
+Environment Variables Configuration Module
+
+This module provides the EnvConfig class for managing environment variables in the
+Music Time Machine application, particularly for securely storing and accessing
+Spotify API credentials.
+
+The EnvConfig class offers:
+- Loading variables from a .env file
+- Multiple access patterns (property, attribute, and dictionary-like)
+- Validation and error handling
+- Convenience properties for common credentials
+
+Usage:
+    config = EnvConfig()
+    client_id = config.spotify_client_id  # Property access
+    secret = config["SPOTIFY_CLIENT_SECRET"]  # Dictionary-like access
+    uri = config.SPOTIFY_REDIRECT_URI  # Attribute access
+    
+Required environment variables:
+- SPOTIFY_CLIENT_ID: Your Spotify application's client ID
+- SPOTIFY_CLIENT_SECRET: Your Spotify application's client secret
+- SPOTIFY_REDIRECT_URI: The URI to redirect to after authentication (http://127.0.0.1:8888/callback)
+"""
+
 class EnvConfig:
     """
     A configuration class for managing environment variables.

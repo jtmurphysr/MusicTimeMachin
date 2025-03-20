@@ -100,9 +100,16 @@ venv.bak/
 
 # Spotify cache
 .cache
+.cache-*
 
-# Billboard HTML file
+# HTML debug files
 billboard.html
+billboard_debug.html
+soundcloud_debug.html
+
+# Generated track lists
+*.txt
+!requirements.txt
 
 # IDE settings
 .idea/
