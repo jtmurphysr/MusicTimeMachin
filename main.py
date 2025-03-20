@@ -7,6 +7,7 @@ from env_variables import EnvConfig
 from scrapers.billboard import BillboardTop100Scraper
 from scrapers.soundcloud import SoundCloudEDMScraper
 import sys
+from datetime import datetime
 
 config = EnvConfig()
 
@@ -28,7 +29,7 @@ Usage:
     python main.py
 
 Author: John Murphy
-Version: 2.0.0
+Version: 2.0.1
 """
 
 def display_welcome_message():
@@ -134,7 +135,8 @@ def run_soundcloud_flow():
         return
     
     # Get the playlist name
-    default_name = "SoundCloud Top EDM Tracks"
+    today_date = datetime.today().strftime('%Y-%m-%d')
+    default_name = f"SoundCloud Top EDM Tracks - {today_date}"
     playlist_name = get_playlist_name(default_name)
     
     # Confirm with the user

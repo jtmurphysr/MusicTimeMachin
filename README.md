@@ -20,6 +20,7 @@ Perfect for reliving musical memories or discovering what's trending now!
 - SoundCloud: Get current top EDM tracks
 - Automatic Spotify song matching
 - Playlist creation with custom name
+- Default playlist names include relevant dates (historical date for Billboard, today's date for SoundCloud)
 - Saves track lists to text files for reference
 - Clean object-oriented design for easy extension
 - Environment variable management for secure credential storage
@@ -69,7 +70,9 @@ You will be guided through the following steps:
 
 2. For Billboard, enter a date in the format YYYY-MM-DD (e.g., 1999-12-31)
 
-3. Enter a name for your playlist or accept the default name
+3. Enter a name for your playlist or accept the default name:
+   - For Billboard: "Billboard Hot 100 - {selected_date}"
+   - For SoundCloud: "SoundCloud Top EDM Tracks - {today's_date}"
 
 4. Confirm playlist creation
 
