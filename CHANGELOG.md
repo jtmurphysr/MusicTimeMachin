@@ -5,6 +5,21 @@ All notable changes to the Music Time Machine project will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2023-11-05
+
+### Added
+- New Apple Music EDM Hits scraper for current electronic dance music
+- New Traxsource Deep House scraper for top deep house tracks
+- Enhanced debugging capabilities for scrapers with HTML response saving
+- Improved track title and artist extraction with multiple fallback methods
+- JSON-LD schema parsing for more reliable data extraction
+
+### Changed
+- Updated chart selection UI to include the new music sources
+- Enhanced the main application flow to support the new scrapers
+- Updated documentation with real-world examples for extending the application
+- Improved error handling and fallback mechanisms for all scrapers
+
 ## [2.1.0] - 2023-10-30
 
 ### Added

@@ -1,13 +1,15 @@
 # Music Time Machine
 
-A Python application that creates Spotify playlists from popular music charts including Billboard Hot 100 and SoundCloud Top EDM.
+A Python application that creates Spotify playlists from popular music charts including Billboard Hot 100, SoundCloud Top EDM, Apple Music EDM Hits, and Traxsource Deep House.
 
 ## Description
 
-Music Time Machine allows you to create Spotify playlists based on music charts. You can:
+Music Time Machine allows you to create Spotify playlists based on various music charts. You can:
 
 1. Travel back in time with Billboard Hot 100 charts from any date in the past
 2. Discover current trending EDM tracks from SoundCloud's Top Charts
+3. Get the latest EDM hits from Apple Music
+4. Find deep house gems from Traxsource's top Deep House tracks
 
 The application scrapes the selected chart, searches for each song on Spotify, and creates a new playlist in your Spotify account with the found tracks.
 
@@ -15,12 +17,16 @@ Perfect for reliving musical memories or discovering what's trending now!
 
 ## Features
 
-- Choose between Billboard Hot 100 or SoundCloud Top EDM charts
+- Choose between multiple chart sources:
+  - Billboard Hot 100 (historical)
+  - SoundCloud Top EDM (current)
+  - Apple Music EDM Hits (current)
+  - Traxsource Deep House Top Tracks (current)
 - Billboard: Scrape Hot 100 charts from any date in the past
-- SoundCloud: Get current top EDM tracks
+- SoundCloud, Apple Music, and Traxsource: Get current top tracks
 - Automatic Spotify song matching
 - Playlist creation with custom name
-- Default playlist names include relevant dates (historical date for Billboard, today's date for SoundCloud)
+- Default playlist names include relevant dates
 - Saves track lists to text files for reference
 - Clean object-oriented design with separation of concerns:
   - Scrapers focus solely on data extraction
@@ -70,12 +76,16 @@ You will be guided through the following steps:
 1. Choose a chart source:
    - Billboard Hot 100 (historical charts)
    - SoundCloud Top EDM (current chart)
+   - Apple Music EDM Hits (current chart)
+   - Traxsource Deep House Top Tracks (current chart)
 
 2. For Billboard, enter a date in the format YYYY-MM-DD (e.g., 1999-12-31)
 
 3. Enter a name for your playlist or accept the default name:
    - For Billboard: "Billboard Hot 100 - {selected_date}"
    - For SoundCloud: "SoundCloud Top EDM Tracks - {today's_date}"
+   - For Apple Music: "Apple Music EDM Hits - {today's_date}"
+   - For Traxsource: "Traxsource Deep House - {today's_date}"
 
 4. Confirm playlist creation
 
@@ -96,6 +106,8 @@ The first time you run the script, it will open a browser window for you to auth
   - `base_scraper.py` - Abstract base class defining the scraper interface
   - `billboard.py` - Implementation of Billboard Hot 100 scraper
   - `soundcloud.py` - Implementation of SoundCloud Top EDM scraper
+  - `AppleMusic_EDM.py` - Implementation of Apple Music EDM Hits scraper
+  - `traxsource_deep_house.py` - Implementation of Traxsource Deep House scraper
 - `playlist_builder.py` - Module that handles all Spotify interactions and playlist creation
 - `env_variables.py` - A utility class for managing environment variables
 - `.env` - Contains your Spotify API credentials (not included in the repository)
@@ -121,6 +133,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - [Billboard](https://www.billboard.com/) for providing historical chart data
 - [SoundCloud](https://soundcloud.com/) for providing current EDM chart data
+- [Apple Music](https://www.apple.com/apple-music/) for providing current EDM hits data
+- [Traxsource](https://www.traxsource.com/) for providing Deep House chart data
 - [Spotify Web API](https://developer.spotify.com/documentation/web-api/) for enabling playlist creation
 - [Spotipy](https://spotipy.readthedocs.io/) for the excellent Python wrapper around the Spotify API
 

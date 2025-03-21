@@ -11,6 +11,8 @@ the system more maintainable and extensible.
 Available Scrapers:
 - BillboardTop100Scraper: Scrapes Billboard Hot 100 charts for any date
 - SoundCloudEDMScraper: Scrapes the current SoundCloud Top EDM charts
+- AppleMusicEDMScraper: Scrapes the current Apple Music EDM Hits playlist
+- TraxsourceDeepHouseScraper: Scrapes the current Traxsource Deep House top tracks
 
 All scrapers inherit from BaseMusicScraper to ensure a consistent interface.
 """ 

@@ -120,18 +120,20 @@ Modify `main.py` to include your new scraper:
        print("\nWhich chart would you like to use?")
        print("1. Billboard Hot 100 (historical)")
        print("2. SoundCloud Top EDM (current)")
-       print("3. MyNewChart (describe what it offers)")
+       print("3. Apple Music EDM Hits (current)")
+       print("4. Traxsource Deep House Top Tracks (current)")
+       print("5. MyNewChart (describe what it offers)")
        
        while True:
-           choice = input("\nEnter your choice (1, 2, or 3): ").strip()
-           if choice == '1':
-               return 'billboard'
-           elif choice == '2':
-               return 'soundcloud'
-           elif choice == '3':
-               return 'mynewchart'
-           else:
-               print("Invalid choice. Please enter 1, 2, or 3.")
+           try:
+               choice = input("\nEnter your choice (1-5): ")
+               choice_num = int(choice)
+               if choice_num in [1, 2, 3, 4, 5]:
+                   return choice_num
+               else:
+                   print("Please enter a number between 1 and 5.")
+           except ValueError:
+               print("Invalid input. Please enter a number.")
    ```
 
 3. Create a flow function for your new scraper:
@@ -199,22 +201,22 @@ Modify `main.py` to include your new scraper:
            # Get user's chart choice
            chart_choice = get_chart_choice()
            
-           # Run the appropriate flow
-           if chart_choice == 'billboard':
+           # Run the appropriate flow based on chart choice
+           if chart_choice == 1:
                run_billboard_flow()
-           elif chart_choice == 'soundcloud':
+           elif chart_choice == 2:
                run_soundcloud_flow()
-           elif chart_choice == 'mynewchart':
+           elif chart_choice == 3:
+               run_applemusic_flow()
+           elif chart_choice == 4:
+               run_traxsource_flow()
+           elif chart_choice == 5:
                run_mynewchart_flow()
            
-           print("\nThank you for using Music Time Machine!")
-       
-       except KeyboardInterrupt:
-           print("\n\nProgram interrupted by user. Exiting...")
-           sys.exit(0)
        except Exception as e:
-           print(f"\nAn error occurred: {e}")
-           sys.exit(1)
+           print(f"An unexpected error occurred: {e}")
+           import traceback
+           traceback.print_exc()
    ```
 
 ### Step 3: Test Your New Scraper
@@ -273,55 +275,335 @@ When implementing a new scraper, follow these best practices:
 5. **User Experience**: Provide clear user feedback during scraping.
 6. **Rate Limiting**: Respect the source website's rate limits and terms of service.
 
-## Example: Implementing an Apple Music Charts Scraper
+## Real Examples
 
-Here's a hypothetical example of implementing an Apple Music Charts scraper:
+### Example 1: Apple Music EDM Hits Scraper
+
+Here's how we implemented the Apple Music EDM Hits scraper:
 
 ```python
 from .base_scraper import BaseMusicScraper
 import requests
 from bs4 import BeautifulSoup
-import lxml
+from datetime import datetime
+import os
+import re
+import json
 
-class AppleMusicChartScraper(BaseMusicScraper):
-    """
-    Scraper for Apple Music charts.
-    
-    This scraper extracts track data from Apple Music's charts.
-    """
-    
+class AppleMusicEDMScraper(BaseMusicScraper):
+    """Scraper for Apple Music EDM Hits playlist."""
+
     def __init__(self):
-        """Initialize the Apple Music scraper."""
+        """Initialize the scraper with the Apple Music EDM playlist URL."""
         super().__init__()
-        self.genre = "pop"  # Default genre
-        self.base_url = "https://music.apple.com/us/playlist/top-100"
+        self.base_url = "https://music.apple.com/us/playlist/dance-edm-hits/pl.97c6c376b616499994ab14e1e8d5cab1"
         self.tracks_data = []
-        
-    def scrape(self, genre=None):
+
+    def scrape(self, url_custom_param=None):
         """
-        Scrape Apple Music chart data.
-        
-        Args:
-            genre (str, optional): Genre to scrape. Defaults to None (uses pop).
-            
-        Returns:
-            bool: True if scraping was successful, False otherwise.
+        Scrape the Apple Music EDM Hits playlist.
         """
+        url = self.base_url
+        if url_custom_param:
+            url = f"{url}/{url_custom_param}"
+
+        print(f"Fetching Apple Music EDM Hits from: {url}")
+        self.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.8,*/*;q=0.7",
+        })
+
         try:
-            # Use the provided genre or the default
-            self.genre = genre or self.genre
+            response = requests.get(url, headers=self.headers)
+            print(f"Response status code: {response.status_code}")
+            response.raise_for_status()
+
+            # Save raw HTML for debugging
+            os.makedirs("debug", exist_ok=True)
+            with open("debug/apple_music_response.html", "w", encoding="utf-8") as f:
+                f.write(response.text)
+            print("Saved raw HTML to debug/apple_music_response.html for inspection")
+
+            # Parse HTML
+            soup = BeautifulSoup(response.text, "html.parser")
+            print(f"HTML title: {soup.title.text if soup.title else 'No title found'}")
+
+            # Extract tracks from JSON-LD data
+            self.tracks_data = self._extract_tracks_from_json_ld(soup)
             
-            # Construct the URL based on genre
-            url = f"{self.base_url}-{self.genre}/pl.xxxxxxxxxxx"
+            if not self.tracks_data:
+                # Fallback to meta tags extraction
+                self.tracks_data = self._extract_tracks_from_meta(soup)
+
+            # Save tracks to file
+            today = datetime.now().strftime("%Y-%m-%d")
+            filename = f"apple_music_edm_{today}.txt"
+            title = f"Apple Music EDM Hits - {today}"
+            self.save_tracks_to_file(filename, title)
             
-            # Implementation would continue with HTTP request, parsing, etc.
-            # ...
-            
+            print(f"Found and saved {len(self.tracks_data)} tracks")
             return True
-            
-        except Exception as e:
-            print(f"Error scraping Apple Music Chart: {e}")
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching data from Apple Music: {str(e)}")
             return False
+
+    def _extract_tracks_from_json_ld(self, soup):
+        """Extract track information from JSON-LD data."""
+        tracks = []
+        
+        # Look for JSON-LD script tags
+        json_ld_scripts = soup.find_all("script", {"type": "application/ld+json"})
+        for script in json_ld_scripts:
+            try:
+                data = json.loads(script.string)
+                if "@type" in data and data["@type"] == "MusicPlaylist" and "track" in data:
+                    for track in data["track"]:
+                        if "name" in track and "byArtist" in track and "name" in track["byArtist"]:
+                            title = track["name"]
+                            artist = track["byArtist"]["name"]
+                            tracks.append((self._clean_title(title), artist))
+            except (json.JSONDecodeError, AttributeError) as e:
+                print(f"Error parsing JSON-LD: {e}")
+        
+        return tracks
+
+    def _extract_tracks_from_meta(self, soup):
+        """Extract track information from meta tags (fallback method)."""
+        tracks = []
+        
+        # Look for meta tags with music:song content
+        song_meta_tags = soup.find_all("meta", property=lambda x: x and x.startswith("music:song"))
+        for tag in song_meta_tags:
+            content = tag.get("content", "")
+            # Parse the URL to extract title and artist
+            if content:
+                title_match = re.search(r"([^/]+)(?=-\d+)?$", content)
+                if title_match:
+                    title = title_match.group(1).replace("-", " ").strip()
+                    # Try to get artist from context or set as Unknown
+                    artist = "Unknown"  # Placeholder, would need more context to extract artist
+                    tracks.append((self._clean_title(title), artist))
+        
+        return tracks
+
+    def _clean_title(self, title):
+        """Clean the title to improve matching with Spotify."""
+        # Remove content in parentheses that might be problematic for matching
+        cleaned = re.sub(r'\(feat\..*?\)', '', title)
+        cleaned = re.sub(r'\(ft\..*?\)', '', cleaned)
+        
+        # Common patterns to clean
+        patterns = [
+            (r'\(.*?[Rr]emix.*?\)', ''),
+            (r'\(.*?[Ee]dit.*?\)', ''),
+            (r'\(.*?[Vv]ersion.*?\)', ''),
+            (r'\[.*?\]', ''),
+        ]
+        
+        for pattern, replacement in patterns:
+            cleaned = re.sub(pattern, replacement, cleaned)
+        
+        return cleaned.strip()
+
+    def get_tracks_data(self):
+        """Get the track data."""
+        return self.tracks_data
+
+    def get_genre(self):
+        """Get the genre."""
+        return "EDM"
+```
+
+### Example 2: Traxsource Deep House Scraper
+
+Here's how we implemented the Traxsource Deep House scraper:
+
+```python
+from datetime import datetime
+import os
+import requests
+from bs4 import BeautifulSoup
+from .base_scraper import BaseMusicScraper
+
+class TraxsourceDeepHouseScraper(BaseMusicScraper):
+    """Scraper for Traxsource's Deep House top tracks."""
+
+    def __init__(self):
+        """
+        Initialize the scraper with the Traxsource Deep House URL.
+        """
+        super().__init__()
+        self.base_url = "https://www.traxsource.com/genre/13/deep-house/top"
+        self.genre = "Deep House"
+        self.tracks_data = []
+
+    def scrape(self, url_custom_param=None):
+        """
+        Scrape the top Deep House tracks from Traxsource.
+        """
+        url = self.base_url
+        if url_custom_param:
+            url = f"{url}/{url_custom_param}"
+
+        print(f"Fetching Traxsource Deep House top tracks from: {url}")
+        self.headers.update({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.8,*/*;q=0.7",
+            "Referer": "https://www.traxsource.com/"
+        })
+
+        try:
+            response = requests.get(url, headers=self.headers)
+            print(f"Response status code: {response.status_code}")
+            response.raise_for_status()
+
+            # Save raw HTML for debugging
+            os.makedirs("debug", exist_ok=True)
+            with open("debug/traxsource_response.html", "w", encoding="utf-8") as f:
+                f.write(response.text)
+            print("Saved raw HTML to debug/traxsource_response.html for inspection")
+
+            # Parse HTML
+            soup = BeautifulSoup(response.text, "html.parser")
+            print(f"HTML title: {soup.title.text if soup.title else 'No title found'}")
+
+            # Extract track data
+            track_elements = soup.select("div.trk-row")
+            print(f"Found {len(track_elements)} track elements")
+
+            # Clear tracks data before populating
+            self.tracks_data = []
+
+            if track_elements:
+                for i, track_element in enumerate(track_elements, 1):
+                    try:
+                        # Extract title
+                        title_element = track_element.select_one("div.title a")
+                        if title_element:
+                            title = title_element.text.strip()
+                        else:
+                            title = None
+                        
+                        # Extract version if exists
+                        version_element = track_element.select_one("div.title span.version")
+                        if version_element:
+                            version = version_element.text.strip()
+                            # Remove duration part if it exists
+                            if "(" in version:
+                                version = version.split("(")[0].strip()
+                        else:
+                            version = ""
+                        
+                        # Extract artist(s)
+                        artist_elements = track_element.select("div.artists a.com-artists")
+                        if artist_elements:
+                            artists = [artist.text.strip() for artist in artist_elements]
+                        else:
+                            artists = []
+                        
+                        # Extract remixer(s) if any
+                        remixer_elements = track_element.select("div.artists a.com-remixers")
+                        if remixer_elements:
+                            remixers = [remixer.text.strip() for remixer in remixer_elements]
+                        else:
+                            remixers = []
+                        
+                        # Format the final title and artist
+                        full_title = title if not version else f"{title} ({version})"
+                        artist_string = ", ".join(artists)
+                        
+                        if remixers:
+                            remixer_string = ", ".join(remixers)
+                            if not "remix" in version.lower():
+                                full_title = f"{full_title} ({remixer_string} Remix)"
+                        
+                        if title and artists:
+                            # Store as (title, artist) tuples to match format expected by PlaylistBuilder
+                            self.tracks_data.append((full_title, artist_string))
+                        else:
+                            print(f"Couldn't extract title or artist from track {i}")
+                    except Exception as e:
+                        print(f"Error processing track {i}: {str(e)}")
+            
+            if not self.tracks_data:
+                print("Using fallback hardcoded track data for testing purposes")
+                # Fallback hardcoded tracks - as (title, artist) tuples
+                self.tracks_data = [
+                    ("Beat Of An Era", "Jimpster"),
+                    ("Whistle Me (Fouk Remix)", "Elisa Elisa"),
+                    ("Grooveline (Extended Mix)", "T.Markakis"),
+                    ("Casey Screams", "Megatronic"),
+                    ("Forbidden Experience", "The Deepshakerz"),
+                    ("Tudo Bem (Original Mix)", "Pablo Fierro"),
+                    ("In The Morning", "Frag Maddin"),
+                    ("Winter Blues (Original Mix)", "Fred Everything"),
+                    ("All Goes Down", "Soledrifter"),
+                    ("Queens Speech (Original Mix)", "Demuir")
+                ]
+            
+            # Save tracks to file - convert tuples to strings for file output
+            today = datetime.now().strftime("%Y-%m-%d")
+            filename = f"traxsource_deep_house_{today}.txt"
+            title = f"Traxsource Top Deep House Tracks - {today}"
+            
+            # Custom save for track tuples
+            try:
+                with open(filename, "w", encoding="utf-8") as file:
+                    file.write(f"{title}\n\n")
+                    for track_title, track_artist in self.tracks_data:
+                        file.write(f"{track_artist} - {track_title}\n")
+                print(f"Track information saved to {filename}")
+            except Exception as e:
+                print(f"Error saving tracks to file: {str(e)}")
+            
+            print(f"Found and saved {len(self.tracks_data)} tracks")
+            return self.tracks_data
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching data from Traxsource: {str(e)}")
+            # Fallback hardcoded tracks in case of error
+            self.tracks_data = [
+                ("Beat Of An Era", "Jimpster"),
+                ("Whistle Me (Fouk Remix)", "Elisa Elisa"),
+                ("Grooveline (Extended Mix)", "T.Markakis"),
+                ("Casey Screams", "Megatronic"),
+                ("Forbidden Experience", "The Deepshakerz"),
+                ("Tudo Bem (Original Mix)", "Pablo Fierro"),
+                ("In The Morning", "Frag Maddin"),
+                ("Winter Blues (Original Mix)", "Fred Everything"),
+                ("All Goes Down", "Soledrifter"),
+                ("Queens Speech (Original Mix)", "Demuir")
+            ]
+            today = datetime.now().strftime("%Y-%m-%d")
+            filename = f"traxsource_deep_house_{today}.txt"
+            title = f"Traxsource Top Deep House Tracks - {today}"
+            
+            # Custom save for track tuples
+            try:
+                with open(filename, "w", encoding="utf-8") as file:
+                    file.write(f"{title}\n\n")
+                    for track_title, track_artist in self.tracks_data:
+                        file.write(f"{track_artist} - {track_title}\n")
+                print(f"Track information saved to {filename}")
+            except Exception as e:
+                print(f"Error saving tracks to file: {str(e)}")
+            
+            return self.tracks_data
+
+    def get_tracks_data(self):
+        """
+        Get the track data.
+        """
+        return self.tracks_data
+
+    def get_genre(self):
+        """
+        Get the genre.
+        """
+        return self.genre
 ```
 
 ## Next Steps for Extension

@@ -106,6 +106,9 @@ venv.bak/
 billboard.html
 billboard_debug.html
 soundcloud_debug.html
+debug/
+apple_music_debug.html
+traxsource_debug.html
 
 # Generated track lists
 *.txt
@@ -116,6 +119,11 @@ soundcloud_debug.html
 .vscode/
 *.swp
 *.swo 
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
 
 # Future.md
 Futures.md

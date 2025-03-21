@@ -6,6 +6,8 @@ from spotipy.oauth2 import SpotifyOAuth
 from env_variables import EnvConfig
 from scrapers.billboard import BillboardTop100Scraper
 from scrapers.soundcloud import SoundCloudEDMScraper
+from scrapers.AppleMusic_EDM import AppleMusicEDMScraper
+from scrapers.traxsource_deep_house import TraxsourceDeepHouseScraper
 from playlist_builder import PlaylistBuilder
 import sys
 from datetime import datetime
@@ -49,20 +51,24 @@ def get_chart_choice():
     Get the user's choice of chart.
     
     Returns:
-        str: The user's choice - 'billboard' or 'soundcloud'.
+        int: The user's chart choice (1, 2, 3, or 4).
     """
     print("\nWhich chart would you like to use?")
     print("1. Billboard Hot 100 (historical)")
     print("2. SoundCloud Top EDM (current)")
+    print("3. Apple Music EDM Hits (current)")
+    print("4. Traxsource Deep House Top Tracks (current)")
     
     while True:
-        choice = input("\nEnter your choice (1 or 2): ").strip()
-        if choice == '1':
-            return 'billboard'
-        elif choice == '2':
-            return 'soundcloud'
-        else:
-            print("Invalid choice. Please enter 1 or 2.")
+        try:
+            choice = input("\nEnter your choice (1, 2, 3, or 4): ")
+            choice_num = int(choice)
+            if choice_num in [1, 2, 3, 4]:
+                return choice_num
+            else:
+                print("Please enter 1, 2, 3, or 4.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
 
 def get_billboard_date():
     """
@@ -173,35 +179,122 @@ def run_soundcloud_flow():
         playlist_name=playlist_name,
         description=description
     )
+
+    if playlist_url:
+        print(f"\nSuccess! Your playlist has been created: {playlist_url}")
+    else:
+        print("\nFailed to create playlist.")
+
+def run_applemusic_flow():
+    """Run the Apple Music EDM Hits workflow."""
+    # Create the scraper and scrape the chart
+    scraper = AppleMusicEDMScraper()
+    success = scraper.scrape()
+
+    if not success:
+        print("Failed to scrape Apple Music EDM Hits chart. Exiting.")
+        return
     
+    # Get the playlist name
+    today_date = datetime.today().strftime('%Y-%m-%d')
+    default_name = f"Apple Music EDM Hits - {today_date}"
+    playlist_name = get_playlist_name(default_name)
+    
+    # Confirm with the user
+    print(f"\nReady to create Spotify playlist '{playlist_name}' with tracks from Apple Music EDM Hits chart.")
+    
+    confirm = input("Proceed? (y/n): ").lower().strip()
+    if confirm != 'y':
+        print("Playlist creation cancelled.")
+        return
+    
+    # Get the track data from the scraper
+    tracks_data = scraper.get_tracks_data()
+    
+    # Create the playlist builder
+    playlist_builder = PlaylistBuilder()
+    
+    # Create the playlist using the builder
+    description = f"Apple Music EDM Hits"
+    playlist_url = playlist_builder.create_playlist(
+        tracks_data=tracks_data,
+        playlist_name=playlist_name,
+        description=description
+    )
+
+    if playlist_url:
+        print(f"\nSuccess! Your playlist has been created: {playlist_url}")
+    else:
+        print("\nFailed to create playlist.")
+
+def run_traxsource_flow():
+    """Run the Traxsource Deep House workflow."""
+    # Create the scraper and scrape the chart
+    scraper = TraxsourceDeepHouseScraper()
+    tracks_data = scraper.scrape()
+    
+    if not tracks_data:
+        print("Failed to scrape Traxsource Deep House chart. Exiting.")
+        return
+    
+    # Get the playlist name
+    today_date = datetime.today().strftime('%Y-%m-%d')
+    default_name = f"Traxsource Deep House - {today_date}"
+    playlist_name = get_playlist_name(default_name)
+    
+    # Confirm with the user
+    print(f"\nReady to create Spotify playlist '{playlist_name}' with tracks from Traxsource Deep House top chart.")
+    
+    confirm = input("Proceed? (y/n): ").lower().strip()
+    if confirm != 'y':
+        print("Playlist creation cancelled.")
+        return
+    
+    # Get the track data from the scraper
+    tracks_data = scraper.get_tracks_data()
+    
+    # Create the playlist builder
+    playlist_builder = PlaylistBuilder()
+    
+    # Create the playlist using the builder
+    description = f"Traxsource Deep House Top Tracks"
+    playlist_url = playlist_builder.create_playlist(
+        tracks_data=tracks_data,
+        playlist_name=playlist_name,
+        description=description
+    )
+
     if playlist_url:
         print(f"\nSuccess! Your playlist has been created: {playlist_url}")
     else:
         print("\nFailed to create playlist.")
 
 def main():
-    """Main function to run the program."""
+    """
+    Main function to run the application flow.
+    """
+    # Configuration
     try:
         # Display welcome message
         display_welcome_message()
         
-        # Get user's chart choice
+        # Get chart choice
         chart_choice = get_chart_choice()
         
-        # Run the appropriate flow
-        if chart_choice == 'billboard':
+        # Run appropriate flow based on chart choice
+        if chart_choice == 1:
             run_billboard_flow()
-        else:  # soundcloud
+        elif chart_choice == 2:
             run_soundcloud_flow()
+        elif chart_choice == 3:
+            run_applemusic_flow()
+        elif chart_choice == 4:
+            run_traxsource_flow()
         
-        print("\nThank you for using Music Time Machine!")
-    
-    except KeyboardInterrupt:
-        print("\n\nProgram interrupted by user. Exiting...")
-        sys.exit(0)
     except Exception as e:
-        print(f"\nAn error occurred: {e}")
-        sys.exit(1)
+        print(f"An unexpected error occurred: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()
